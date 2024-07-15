@@ -1,0 +1,11 @@
+{
+    "name": "mins01/helper-php-spreadsheet",
+    "autoload": {
+        "psr-4": {
+            "Mins01\\HelperPhpSpreadsheet\\": "src/"
+        }
+    },
+    "require": {
+        "phpoffice/phpspreadsheet": "^2.1"
+    }
+}
