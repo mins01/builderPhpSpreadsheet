@@ -1,4 +1,5 @@
 <?
+namespace mins01\BuilderPhpSpreadsheet;
 
 class BuilderPhpSpreadsheet{
     public $spreadsheet = null;
@@ -7,8 +8,8 @@ class BuilderPhpSpreadsheet{
     static $defStyles = [
         'alignmentCenterCenter' => [
             'alignment' => [
-                'horizontal' => PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER,
-                'vertical' => PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
+                'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER,
+                'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
             ],
         ],
         'fillForHeader' =>[
@@ -42,7 +43,7 @@ class BuilderPhpSpreadsheet{
 
 
     public function __construct() {
-        $this->spreadsheet = new PhpOffice\PhpSpreadsheet\Spreadsheet();
+        $this->spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
         $this->init();
     }
 
@@ -68,25 +69,25 @@ class BuilderPhpSpreadsheet{
     public function download($filename,$type='xlsx'){
         if($type=='xlsx'){
             // 다운로드 - xlsx
-            $writer = new PhpOffice\PhpSpreadsheet\Writer\Xlsx($this->spreadsheet);
+            $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($this->spreadsheet);
             header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
             header('Content-Disposition: attachment;filename="'.$filename.'.xlsx"');
             header('Cache-Control: max-age=0');
             $writer->save('php://output');
         }else if($type=='html'){
             // 테스트 출력부 - HTML
-            $writer = new PhpOffice\PhpSpreadsheet\Writer\Html($this->spreadsheet);    
+            $writer = new \PhpOffice\PhpSpreadsheet\Writer\Html($this->spreadsheet);    
             $writer->save('php://output');
         }
     }
     public function save($filename,$type='xlsx'){
         if($type=='xlsx'){
             // 다운로드 - xlsx
-            $writer = new PhpOffice\PhpSpreadsheet\Writer\Xlsx($this->spreadsheet);
+            $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($this->spreadsheet);
             $writer->save($filename.'.xlsx');
         }else if($type=='html'){
             // 테스트 출력부 - HTML
-            $writer = new PhpOffice\PhpSpreadsheet\Writer\Html($this->spreadsheet);    
+            $writer = new \PhpOffice\PhpSpreadsheet\Writer\Html($this->spreadsheet);    
             $writer->save($filename.'.html');
         } 
     }

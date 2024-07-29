@@ -2,7 +2,7 @@
     "name": "mins01/helper-php-spreadsheet",
     "autoload": {
         "psr-4": {
-            "Mins01\\HelperPhpSpreadsheet\\": "src/"
+            "mins01\\BuilderPhpSpreadsheet\\": "./"
         }
     },
     "require": {

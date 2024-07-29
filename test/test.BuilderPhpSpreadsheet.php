@@ -4,8 +4,8 @@ ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
 require_once('../vendor/autoload.php');
-require_once('../src/BuilderPhpSpreadsheet.php');
-
+// require_once('../src/Builder.php');
+use mins01\BuilderPhpSpreadsheet\BuilderPhpSpreadsheet;
 
 $bps = new BuilderPhpSpreadsheet();
 
