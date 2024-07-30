@@ -8,7 +8,6 @@ namespace mins01\BuilderPhpSpreadsheet;
 class BuilderPhpSpreadsheet{
     public $spreadsheet = null;
     public $default_width = 20;
-    public $bodyAutoLink = true;
 
     static $defStyles = [
         'alignmentCenterCenter' => [
@@ -66,9 +65,9 @@ class BuilderPhpSpreadsheet{
         // $this->spreadsheet->removeSheetByIndex(1);
 
         $this->defConf = [
-            'header'=>['style'=>static::$defStyles['fillForHeader']+static::$defStyles['bordersAll']+static::$defStyles['alignmentCenterCenter']],
-            'body'=>['style'=>static::$defStyles['bordersAll'],],
-            'footer'=>['style'=>static::$defStyles['fillForFooter']+static::$defStyles['bordersAll']],
+            'header'=>['autolink'=>false,'style'=>static::$defStyles['fillForHeader']+static::$defStyles['bordersAll']+static::$defStyles['alignmentCenterCenter']],
+            'body'=>['autolink'=>true,'style'=>static::$defStyles['bordersAll'],],
+            'footer'=>['autolink'=>false,'style'=>static::$defStyles['fillForFooter']+static::$defStyles['bordersAll']],
         ];
     }
     public function download($filename,$type='xlsx'){
@@ -137,7 +136,7 @@ class BuilderPhpSpreadsheet{
         }
         if(isset($body[0][0])){
             $partConf = ($conf['body']??[])+$this->defConf['body'];
-            $rIdx = $this->setSheetDataPart($sheet,$rIdx,$body,$partConf,$this->bodyAutoLink);
+            $rIdx = $this->setSheetDataPart($sheet,$rIdx,$body,$partConf);
         }
         if(isset($footer[0][0])){
             $partConf = ($conf['footer']??[])+$this->defConf['footer'];
@@ -150,22 +149,24 @@ class BuilderPhpSpreadsheet{
     /**
      * 시트에 데이터 파트를 적용
      */
-    public function setSheetDataPart($sheet,$rIdx,$partValues,$partConf,$autoLink=false){
+    public function setSheetDataPart($sheet,$rIdx,$partValues,$partConf){
         //-- 값 설정
         $d = & $partValues;
         $firstCellCoord = 'A'.$rIdx;
         $sheet->fromArray($d,null,$firstCellCoord);
 
-        if($autoLink){
+        if($partConf['autolink']){
             foreach($d as $dRIdx=>$dRow){
                 foreach($dRow as $dCIdx => $dCol){
                     if( filter_var($dCol, FILTER_VALIDATE_URL) ){ //URL 인 경우
                         $coord = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($dCIdx+1).($dRIdx+$rIdx);
                         $sheet->getCell($coord)->getHyperlink()->setUrl($dCol);
+                        $sheet->getStyle($coord)->applyFromArray(static::$defStyles['fontForLink']);
                     }
                     if(filter_var($dCol, FILTER_VALIDATE_EMAIL)){ //EMAIL 인 경우
                         $coord = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($dCIdx+1).($dRIdx+$rIdx);
                         $sheet->getCell($coord)->getHyperlink()->setUrl('mailto:'.$dCol);
+                        $sheet->getStyle($coord)->applyFromArray(static::$defStyles['fontForLink']);
                     }
                 }
             }
