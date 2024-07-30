@@ -1,9 +1,14 @@
-<?
+<?php
 namespace mins01\BuilderPhpSpreadsheet;
 
+
+/**
+ * 2024-07-30: 자동링크 처리.
+ */
 class BuilderPhpSpreadsheet{
     public $spreadsheet = null;
     public $default_width = 20;
+    public $bodyAutoLink = true;
 
     static $defStyles = [
         'alignmentCenterCenter' => [
@@ -100,7 +105,7 @@ class BuilderPhpSpreadsheet{
             $sheet = $this->spreadsheet->createSheet($idx);
         }
         if(!$sheet){
-            throw new Exception( "Not exists sheet.({$idx})");
+            throw new \Exception( "Not exists sheet.({$idx})");
         }
         return $this->setSheetDataFromSheet($sheet,$conf,$body,$header,$footer);
     }
@@ -132,7 +137,7 @@ class BuilderPhpSpreadsheet{
         }
         if(isset($body[0][0])){
             $partConf = ($conf['body']??[])+$this->defConf['body'];
-            $rIdx = $this->setSheetDataPart($sheet,$rIdx,$body,$partConf);
+            $rIdx = $this->setSheetDataPart($sheet,$rIdx,$body,$partConf,$this->bodyAutoLink);
         }
         if(isset($footer[0][0])){
             $partConf = ($conf['footer']??[])+$this->defConf['footer'];
@@ -145,11 +150,28 @@ class BuilderPhpSpreadsheet{
     /**
      * 시트에 데이터 파트를 적용
      */
-    public function setSheetDataPart($sheet,$rIdx,$partValues,$partConf){
+    public function setSheetDataPart($sheet,$rIdx,$partValues,$partConf,$autoLink=false){
         //-- 값 설정
         $d = & $partValues;
         $firstCellCoord = 'A'.$rIdx;
-        $sheet->fromArray($d,null,'A'.$rIdx);
+        $sheet->fromArray($d,null,$firstCellCoord);
+
+        if($autoLink){
+            foreach($d as $dRIdx=>$dRow){
+                foreach($dRow as $dCIdx => $dCol){
+                    if( filter_var($dCol, FILTER_VALIDATE_URL) ){ //URL 인 경우
+                        $coord = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($dCIdx+1).($dRIdx+$rIdx);
+                        $sheet->getCell($coord)->getHyperlink()->setUrl($dCol);
+                    }
+                    if(filter_var($dCol, FILTER_VALIDATE_EMAIL)){ //EMAIL 인 경우
+                        $coord = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($dCIdx+1).($dRIdx+$rIdx);
+                        $sheet->getCell($coord)->getHyperlink()->setUrl('mailto:'.$dCol);
+                    }
+                }
+            }
+        }
+        
+        // exit;
         $rIdx+= count($d);
         $lastColIndex = max(array_map(function($arr){return count($arr);},$d));
         $lastColAlpha = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($lastColIndex);
