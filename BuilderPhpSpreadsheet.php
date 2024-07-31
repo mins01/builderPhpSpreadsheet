@@ -4,7 +4,7 @@ namespace mins01\BuilderPhpSpreadsheet;
 
 /**
  * 2024-07-30: 자동링크 처리.
- * 2024-07-31: conf mergeCells 처리 추가.
+ * 2024-07-31: conf cellSpans 처리 추가.
  */
 class BuilderPhpSpreadsheet{
     public $spreadsheet = null;
@@ -129,9 +129,9 @@ class BuilderPhpSpreadsheet{
                 }            
             }
         }
-        //--- 시트 mergeCells
-        if(isset($cf['mergeCells'])){
-            $this->setSheetMergeCells($sheet,1,1,$cf['mergeCells']);
+        //--- 시트 cellSpans
+        if(isset($cf['cellSpans'])){
+            $this->setSheetCellSpans($sheet,1,1,$cf['cellSpans']);
         }
         //--- 데이터 설정
         $cellRowIndex = 1; // cell row idx
@@ -210,9 +210,9 @@ class BuilderPhpSpreadsheet{
                 }
             }
         }
-        //---  mergeCells
-        if(isset($partConf['mergeCells'])){
-            $this->setSheetMergeCells($sheet,$fromCellRowIndex,$fromCellColumnIndex,$partConf['mergeCells']);
+        //---  cellSpans
+        if(isset($partConf['cellSpans'])){
+            $this->setSheetCellSpans($sheet,$fromCellRowIndex,$fromCellColumnIndex,$partConf['cellSpans']);
         }
         return [$nextCellRowIndex,$nexCellColumnIndex];
     }
@@ -223,22 +223,22 @@ class BuilderPhpSpreadsheet{
      * @param mixed $sheet
      * @param mixed $fromCellRowIndex 1+
      * @param mixed $fromCellColumnIndex 1+
-     * @param mixed $mergeCells [[cellRowIndex(1+),cellColumnIndex(1+),rowspan(0+),colspan(0+)]]
+     * @param mixed $cellSpans [[cellRowIndex(1+),cellColumnIndex(1+),rowspan(0+),colspan(0+)]]
      * 
      * @return [type]
      * 
      */
-    public function setSheetMergeCells($sheet,$fromCellRowIndex,$fromCellColumnIndex,$mergeCells){
-        foreach($mergeCells as $mergeCell){
+    public function setSheetCellSpans($sheet,$fromCellRowIndex,$fromCellColumnIndex,$cellSpans){
+        foreach($cellSpans as $mergeCell){
             if($mergeCell[2] > 1 || $mergeCell[3]>1 ){
                 $coord1 = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($fromCellColumnIndex+$mergeCell[1]-1).($fromCellRowIndex+$mergeCell[0]-1);
                 $coord2 = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($fromCellColumnIndex+$mergeCell[1]+$mergeCell[3]-2).($fromCellRowIndex+$mergeCell[0]+$mergeCell[2]-2);
                 $coords = $coord1.':'.$coord2;
                 // print_r($coords);
                 $sheet->mergeCells($coords);
-                
             }
         }
     }
+    
     
 }

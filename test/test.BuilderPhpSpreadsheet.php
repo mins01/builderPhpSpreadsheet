@@ -12,13 +12,13 @@ $bps = new BuilderPhpSpreadsheet();
 $conf = [
     'sheet'=>[
         'title'=>"기본설정",
-        'mergeCells'=>[
+        'cellSpans'=>[
             // [cellRowIndex(1+),cellColumnIndex(1+),rowspan(0+),colspan(0+)]
             [1,1,1,2],
         ]
     ],
     'body'=>[
-        'mergeCells'=>[
+        'cellSpans'=>[
             // [cellRowIndex(1+),cellColumnIndex(1+),rowspan(0+),colspan(0+)]
             [1,3,1,2],
         ]
