@@ -1,16 +1,35 @@
 <?php
 namespace mins01\BuilderPhpSpreadsheet;
 
-
 /**
  * 2024-07-30: 자동링크 처리.
  * 2024-07-31: conf cellSpans 처리 추가.
  */
-class BuilderPhpSpreadsheet{
-    public $spreadsheet = null;
-    public $default_width = 20;
 
-    static $defStyles = [
+/**
+ * BuilderPhpSpreadsheet
+ */
+class BuilderPhpSpreadsheet{    
+    /**
+     * spreadsheet
+     *
+     * @var \PhpOffice\PhpSpreadsheet\Spreadsheet||NULL
+     */
+    public $spreadsheet = null;
+    
+    /**
+     * 기본 너비
+     *
+     * @var int
+     */
+    public $default_width = 20;
+    
+    /**
+     * 기본 스타일
+     *
+     * @var array
+     */
+    static public $defStyles = [
         'alignmentCenterCenter' => [
             'alignment' => [
                 'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER,
@@ -44,6 +63,7 @@ class BuilderPhpSpreadsheet{
             ],
         ]
     ];
+    
     public $defConf = [];
 
 
@@ -71,6 +91,17 @@ class BuilderPhpSpreadsheet{
             'footer'=>['autolink'=>false,'style'=>static::$defStyles['fillForFooter']+static::$defStyles['bordersAll']],
         ];
     }
+
+
+    /**
+     * 웹 다운로드
+     *
+     * @param mixed $filename
+     * @param mixed $type='xlsx'
+     * 
+     * @return null
+     * 
+     */
     public function download($filename,$type='xlsx'){
         if($type=='xlsx'){
             // 다운로드 - xlsx
@@ -85,6 +116,17 @@ class BuilderPhpSpreadsheet{
             $writer->save('php://output');
         }
     }
+
+
+    /**
+     * 서버에 파일 저장
+     *
+     * @param mixed $filename
+     * @param mixed $type='xlsx'
+     * 
+     * @return null
+     * 
+     */
     public function save($filename,$type='xlsx'){
         if($type=='xlsx'){
             // 다운로드 - xlsx
@@ -97,6 +139,18 @@ class BuilderPhpSpreadsheet{
         } 
     }
 
+    /**
+     * [Description for setSheetDataFromSheet]
+     *
+     * @param int $idx 시트번호(0+)
+     * @param mixed $conf=null 설정
+     * @param mixed $body=null body 데이터
+     * @param mixed $header=null header 데이터
+     * @param mixed $footer=null footer 데이터
+     * 
+     * @return PhpOffice\PhpSpreadsheet\Worksheet\Worksheet $sheet 
+     * 
+     */
     public function setSheetData($idx,$conf=null,$body=null,$header=null,$footer=null){
         $sheet =  null;
         if($idx <= $this->spreadsheet->getSheetCount()-1){
@@ -109,6 +163,19 @@ class BuilderPhpSpreadsheet{
         }
         return $this->setSheetDataFromSheet($sheet,$conf,$body,$header,$footer);
     }
+
+    /**
+     * [Description for setSheetDataFromSheet]
+     *
+     * @param PhpOffice\PhpSpreadsheet\Worksheet\Worksheet $sheet 
+     * @param mixed $conf=null 설정
+     * @param mixed $body=null body 데이터
+     * @param mixed $header=null header 데이터
+     * @param mixed $footer=null footer 데이터
+     * 
+     * @return PhpOffice\PhpSpreadsheet\Worksheet\Worksheet $sheet 
+     * 
+     */
     public function setSheetDataFromSheet($sheet,$conf=null,$body=null,$header=null,$footer=null){
         if(!isset($this->default_width)) $sheet->getDefaultColumnDimension()->setWidth($this->default_width); // 각 시트에 기본 너비 설정함
         
@@ -159,11 +226,11 @@ class BuilderPhpSpreadsheet{
     /**
      * 시트에 데이터 파트를 적용
      *
-     * @param mixed $sheet
-     * @param mixed $fromCellColumnIndex 1+
-     * @param mixed $fromCellRowIndex 1+
-     * @param mixed $partValues
-     * @param mixed $partConf
+     * @param PhpOffice\PhpSpreadsheet\Worksheet\Worksheet $sheet 
+     * @param int $fromCellColumnIndex 시작 column (1+)
+     * @param int $fromCellRowIndex 시작 row (1+)
+     * @param array $partValues 데이터
+     * @param array $partConf 설정
      * 
      * @return array [$nextCellRowIndex,$nexCellColumnIndex] [1+,1+]
      * 
@@ -222,7 +289,7 @@ class BuilderPhpSpreadsheet{
     }
 
     /**
-     * [Description for setSheetSpans]
+     * row,column 기준 오른쪽, 아래로 합친다.
      *
      * @param mixed $sheet
      * @param mixed $fromCellColumnIndex 1+
@@ -245,7 +312,7 @@ class BuilderPhpSpreadsheet{
     }
 
     /**
-     * [Description for setSheetMergeCells]
+     * row1,column1 에서 row2,column2 방향으로 합친다.
      *
      * @param mixed $sheet
      * @param mixed $fromCellRowIndex
