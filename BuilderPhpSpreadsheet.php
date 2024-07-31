@@ -139,17 +139,17 @@ class BuilderPhpSpreadsheet{
 
         if(isset($header[0][0])){
             $partConf = ($conf['header']??[])+$this->defConf['header'];
-            $r = $this->setSheetDataPart($sheet,$cellRowIndex,$cellColumnIndex,$header,$partConf);
+            $r = $this->setSheetDataPart($sheet,$cellColumnIndex,$cellRowIndex,$header,$partConf);
             $cellRowIndex = $r[0];
         }
         if(isset($body[0][0])){
             $partConf = ($conf['body']??[])+$this->defConf['body'];
-            $r = $this->setSheetDataPart($sheet,$cellRowIndex,$cellColumnIndex,$body,$partConf);
+            $r = $this->setSheetDataPart($sheet,$cellColumnIndex,$cellRowIndex,$body,$partConf);
             $cellRowIndex = $r[0];
         }
         if(isset($footer[0][0])){
             $partConf = ($conf['footer']??[])+$this->defConf['footer'];
-            $r = $this->setSheetDataPart($sheet,$cellRowIndex,$cellColumnIndex,$footer,$partConf);
+            $r = $this->setSheetDataPart($sheet,$cellColumnIndex,$cellRowIndex,$footer,$partConf);
             $cellRowIndex = $r[0];
         }
         $sheet->setSelectedCell('A1');
@@ -160,15 +160,15 @@ class BuilderPhpSpreadsheet{
      * 시트에 데이터 파트를 적용
      *
      * @param mixed $sheet
-     * @param mixed $fromCellRowIndex 1+
      * @param mixed $fromCellColumnIndex 1+
+     * @param mixed $fromCellRowIndex 1+
      * @param mixed $partValues
      * @param mixed $partConf
      * 
      * @return array [$nextCellRowIndex,$nexCellColumnIndex] [1+,1+]
      * 
      */
-    public function setSheetDataPart($sheet,$fromCellRowIndex,$fromCellColumnIndex,$partValues,$partConf){
+    public function setSheetDataPart($sheet,$fromCellColumnIndex,$fromCellRowIndex,$partValues,$partConf){
         //-- 값 설정
         $d = & $partValues;
         $nextCellRowIndex = $fromCellRowIndex + count($d);
@@ -212,7 +212,11 @@ class BuilderPhpSpreadsheet{
         }
         //---  cellSpans
         if(isset($partConf['cellSpans'])){
-            $this->setSheetCellSpans($sheet,$fromCellRowIndex,$fromCellColumnIndex,$partConf['cellSpans']);
+            $this->setSheetCellSpans($sheet,$fromCellColumnIndex,$fromCellRowIndex,$partConf['cellSpans']);
+        }
+        //---  mergeCells
+        if(isset($partConf['mergeCells'])){
+            $this->setSheetMergeCells($sheet,$fromCellColumnIndex,$fromCellRowIndex,$partConf['mergeCells']);
         }
         return [$nextCellRowIndex,$nexCellColumnIndex];
     }
@@ -221,18 +225,41 @@ class BuilderPhpSpreadsheet{
      * [Description for setSheetSpans]
      *
      * @param mixed $sheet
-     * @param mixed $fromCellRowIndex 1+
      * @param mixed $fromCellColumnIndex 1+
+     * @param mixed $fromCellRowIndex 1+
      * @param mixed $cellSpans [[cellRowIndex(1+),cellColumnIndex(1+),rowspan(0+),colspan(0+)]]
      * 
      * @return [type]
      * 
      */
-    public function setSheetCellSpans($sheet,$fromCellRowIndex,$fromCellColumnIndex,$cellSpans){
-        foreach($cellSpans as $mergeCell){
+    public function setSheetCellSpans($sheet,$fromCellColumnIndex,$fromCellRowIndex,$cellSpans){
+        foreach($cellSpans as $cellSpan){
+            if($cellSpan[2] > 1 || $cellSpan[3]>1 ){
+                $coord1 = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($fromCellColumnIndex+$cellSpan[1]-1).($fromCellRowIndex+$cellSpan[0]-1);
+                $coord2 = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($fromCellColumnIndex+$cellSpan[1]+$cellSpan[3]-2).($fromCellRowIndex+$cellSpan[0]+$cellSpan[2]-2);
+                $coords = $coord1.':'.$coord2;
+                // print_r($coords);
+                $sheet->mergeCells($coords);
+            }
+        }
+    }
+
+    /**
+     * [Description for setSheetMergeCells]
+     *
+     * @param mixed $sheet
+     * @param mixed $fromCellRowIndex
+     * @param mixed $fromCellColumnIndex
+     * @param mixed $mergeCells [[cellRowIndex_1(1+),cellColumnIndex_1(1+),cellRowIndex_2(1+),cellColumnIndex_2(1+)]]
+     * 
+     * @return [type]
+     * 
+     */
+    public function setSheetMergeCells($sheet,$fromCellColumnIndex,$fromCellRowIndex,$mergeCells){
+        foreach($mergeCells as $mergeCell){
             if($mergeCell[2] > 1 || $mergeCell[3]>1 ){
                 $coord1 = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($fromCellColumnIndex+$mergeCell[1]-1).($fromCellRowIndex+$mergeCell[0]-1);
-                $coord2 = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($fromCellColumnIndex+$mergeCell[1]+$mergeCell[3]-2).($fromCellRowIndex+$mergeCell[0]+$mergeCell[2]-2);
+                $coord2 = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($fromCellColumnIndex+$mergeCell[3]-1).($fromCellRowIndex+$mergeCell[2]-1);
                 $coords = $coord1.':'.$coord2;
                 // print_r($coords);
                 $sheet->mergeCells($coords);
