@@ -13,16 +13,21 @@ $conf = [
     'sheet'=>[
         'title'=>"기본설정",
         'cellSpans'=>[
-            // [cellRowIndex(1+),cellColumnIndex(1+),rowspan(0+),colspan(0+)]
-            [1,1,1,2],
+            // [cellColumnIndex(1+),cellRowIndex(1+),colspan(0+),rowspan(0+)]
+            [1,1,2,1],
         ]
     ],
     'body'=>[
         'cellSpans'=>[
-            // [cellRowIndex(1+),cellColumnIndex(1+),rowspan(0+),colspan(0+)]
-            [1,3,1,2],
+            // [cellColumnIndex(1+),cellRowIndex(1+),colspan(0+),rowspan(0+)]
+            [3,1,2,1],
+        ],
+        'mergeCells'=>[
+            // [cellColumnIndex_1(1+),cellRowIndex_1(1+),cellColumnIndex_2(1+),cellRowIndex_2(1+)]
+            [5,1,7,2],
         ]
     ]
+    
 ];
 $header = [
     ['해더1-'.time(),'해더2','해더3','해더4','해더5','해더6','해더7','해더8','해더9','해더10','해더11','해더12','해더13',],
@@ -33,7 +38,7 @@ $footer = [
     ['http://www.mins01.com/','test@mins01.com','풋터:2-3','풋터:2-4','풋터:2-5','풋터:2-6','풋터:2-7','풋터:2-8','풋터:2-9','풋터:2-10','풋터:2-11','풋터:2-12','풋터:2-13',]
 ];
 $body = [
-    [1,2,3,4,5],
+    [1,2,3,4,5,6,7,8,9,10],
     ['http://www.mins01.com/','test@mins01.com','2024-07-15','데이터4','오른쪽 정렬','데이터6','데이터7','데이터8','데이터9','데이터10','데이터11','데이터12','데이터13',],
 ];
 $bps->setSheetData(0,$conf,$body,$header,$footer);

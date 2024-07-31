@@ -227,20 +227,20 @@ class BuilderPhpSpreadsheet{
      * @param mixed $sheet
      * @param mixed $fromCellColumnIndex 1+
      * @param mixed $fromCellRowIndex 1+
-     * @param mixed $cellSpans [[cellRowIndex(1+),cellColumnIndex(1+),rowspan(0+),colspan(0+)]]
+     * @param mixed $cellSpans [[cellColumnIndex(1+),cellRowIndex(1+),colspan(0+),rowspan(0+)]]
      * 
      * @return [type]
      * 
      */
     public function setSheetCellSpans($sheet,$fromCellColumnIndex,$fromCellRowIndex,$cellSpans){
+        $mergeCells = [];
         foreach($cellSpans as $cellSpan){
             if($cellSpan[2] > 1 || $cellSpan[3]>1 ){
-                $coord1 = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($fromCellColumnIndex+$cellSpan[1]-1).($fromCellRowIndex+$cellSpan[0]-1);
-                $coord2 = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($fromCellColumnIndex+$cellSpan[1]+$cellSpan[3]-2).($fromCellRowIndex+$cellSpan[0]+$cellSpan[2]-2);
-                $coords = $coord1.':'.$coord2;
-                // print_r($coords);
-                $sheet->mergeCells($coords);
+                $mergeCells[] = [$cellSpan[0],$cellSpan[1],$cellSpan[0]+$cellSpan[2]-1,$cellSpan[1]+$cellSpan[3]-1];
             }
+        }
+        if(count($mergeCells)){
+            $this->setSheetMergeCells($sheet,$fromCellColumnIndex,$fromCellRowIndex,$mergeCells);
         }
     }
 
@@ -250,7 +250,7 @@ class BuilderPhpSpreadsheet{
      * @param mixed $sheet
      * @param mixed $fromCellRowIndex
      * @param mixed $fromCellColumnIndex
-     * @param mixed $mergeCells [[cellRowIndex_1(1+),cellColumnIndex_1(1+),cellRowIndex_2(1+),cellColumnIndex_2(1+)]]
+     * @param mixed $mergeCells [[cellColumnIndex_1(1+),cellRowIndex_1(1+),cellColumnIndex_2(1+),cellRowIndex_2(1+)]]
      * 
      * @return [type]
      * 
@@ -258,8 +258,8 @@ class BuilderPhpSpreadsheet{
     public function setSheetMergeCells($sheet,$fromCellColumnIndex,$fromCellRowIndex,$mergeCells){
         foreach($mergeCells as $mergeCell){
             if($mergeCell[2] > 1 || $mergeCell[3]>1 ){
-                $coord1 = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($fromCellColumnIndex+$mergeCell[1]-1).($fromCellRowIndex+$mergeCell[0]-1);
-                $coord2 = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($fromCellColumnIndex+$mergeCell[3]-1).($fromCellRowIndex+$mergeCell[2]-1);
+                $coord1 = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($fromCellColumnIndex+$mergeCell[0]-1).($fromCellRowIndex+$mergeCell[1]-1);
+                $coord2 = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($fromCellColumnIndex+$mergeCell[2]-1).($fromCellRowIndex+$mergeCell[3]-1);
                 $coords = $coord1.':'.$coord2;
                 // print_r($coords);
                 $sheet->mergeCells($coords);
