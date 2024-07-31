@@ -128,19 +128,28 @@ class BuilderPhpSpreadsheet{
                 }            
             }
         }
-        $rIdx = 1; // row idx
+        //--- 시트 mergeCells
+        if(isset($cf['mergeCells'])){
+            $this->setSheetMergeCells($sheet,1,1,$cf['mergeCells']);
+        }
+        //--- 데이터 설정
+        $cellRowIndex = 1; // cell row idx
+        $cellColumnIndex = 1; // cell column idx
 
         if(isset($header[0][0])){
             $partConf = ($conf['header']??[])+$this->defConf['header'];
-            $rIdx = $this->setSheetDataPart($sheet,$rIdx,$header,$partConf);
+            $r = $this->setSheetDataPart($sheet,$cellRowIndex,$cellColumnIndex,$header,$partConf);
+            $cellRowIndex = $r[0];
         }
         if(isset($body[0][0])){
             $partConf = ($conf['body']??[])+$this->defConf['body'];
-            $rIdx = $this->setSheetDataPart($sheet,$rIdx,$body,$partConf);
+            $r = $this->setSheetDataPart($sheet,$cellRowIndex,$cellColumnIndex,$body,$partConf);
+            $cellRowIndex = $r[0];
         }
         if(isset($footer[0][0])){
             $partConf = ($conf['footer']??[])+$this->defConf['footer'];
-            $rIdx = $this->setSheetDataPart($sheet,$rIdx,$footer,$partConf);
+            $r = $this->setSheetDataPart($sheet,$cellRowIndex,$cellColumnIndex,$footer,$partConf);
+            $cellRowIndex = $r[0];
         }
         $sheet->setSelectedCell('A1');
         return $sheet;
@@ -148,24 +157,34 @@ class BuilderPhpSpreadsheet{
 
     /**
      * 시트에 데이터 파트를 적용
+     *
+     * @param mixed $sheet
+     * @param mixed $fromCellRowIndex 1+
+     * @param mixed $fromCellColumnIndex 1+
+     * @param mixed $partValues
+     * @param mixed $partConf
+     * 
+     * @return array [$nextCellRowIndex,$nexCellColumnIndex] [1+,1+]
+     * 
      */
-    public function setSheetDataPart($sheet,$rIdx,$partValues,$partConf){
+    public function setSheetDataPart($sheet,$fromCellRowIndex,$fromCellColumnIndex,$partValues,$partConf){
         //-- 값 설정
         $d = & $partValues;
-        $firstCellCoord = 'A'.$rIdx;
+        $nextCellRowIndex = $fromCellRowIndex + count($d);
+        $firstCellCoord = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($fromCellColumnIndex).$fromCellRowIndex;
         $sheet->fromArray($d,null,$firstCellCoord);
 
         if($partConf['autolink']){
-            foreach($d as $dRIdx=>$dRow){
-                foreach($dRow as $dCIdx => $dCol){
-                    if( filter_var($dCol, FILTER_VALIDATE_URL) ){ //URL 인 경우
-                        $coord = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($dCIdx+1).($dRIdx+$rIdx);
-                        $sheet->getCell($coord)->getHyperlink()->setUrl($dCol);
+            foreach($d as $dRI=>$dRow){
+                foreach($dRow as $dCI => $dVal){
+                    if( filter_var($dVal, FILTER_VALIDATE_URL) ){ //URL 인 경우
+                        $coord = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($dCI+$fromCellColumnIndex).($dRI+$fromCellRowIndex);
+                        $sheet->getCell($coord)->getHyperlink()->setUrl($dVal);
                         $sheet->getStyle($coord)->applyFromArray(static::$defStyles['fontForLink']);
                     }
-                    if(filter_var($dCol, FILTER_VALIDATE_EMAIL)){ //EMAIL 인 경우
-                        $coord = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($dCIdx+1).($dRIdx+$rIdx);
-                        $sheet->getCell($coord)->getHyperlink()->setUrl('mailto:'.$dCol);
+                    if(filter_var($dVal, FILTER_VALIDATE_EMAIL)){ //EMAIL 인 경우
+                        $coord = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($dCI+$fromCellColumnIndex).($dRI+$fromCellRowIndex);
+                        $sheet->getCell($coord)->getHyperlink()->setUrl('mailto:'.$dVal);
                         $sheet->getStyle($coord)->applyFromArray(static::$defStyles['fontForLink']);
                     }
                 }
@@ -173,10 +192,10 @@ class BuilderPhpSpreadsheet{
         }
         
         // exit;
-        $rIdx+= count($d);
-        $lastColIndex = max(array_map(function($arr){return count($arr);},$d));
+        $lastColIndex = $fromCellColumnIndex+max(array_map(function($arr){return count($arr);},$d))-1;
         $lastColAlpha = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($lastColIndex);
-        $lastCellCoord = $lastColAlpha.($rIdx-1);
+        $lastCellCoord = $lastColAlpha.($nextCellRowIndex-1);
+        $nexCellColumnIndex = $lastColIndex+1;
         //-- 파트의 스타일
         if(isset($partConf['style'])) $sheet->getStyle("{$firstCellCoord}:{$lastCellCoord}")->applyFromArray($partConf['style']);
         //-- 컬럼의 스타일
@@ -184,14 +203,41 @@ class BuilderPhpSpreadsheet{
             foreach($partConf['columns'] as $k => $column ){
                 if(!isset($column)) continue;
                 $alpha = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($k+1);
-                $colCoord = $alpha.($rIdx - count($d)).':'.$alpha.($rIdx - 1);
+                $colCoord = $alpha.($nextCellRowIndex - count($d)).':'.$alpha.($nextCellRowIndex - 1);
                 if(isset($column['style'])){
                     $sheet->getStyle($colCoord)->applyFromArray($column['style']);
                 }
             }
         }
-        unset($d);
-        return $rIdx;
+        //---  mergeCells
+        if(isset($partConf['mergeCells'])){
+            $this->setSheetMergeCells($sheet,$fromCellRowIndex,$fromCellColumnIndex,$partConf['mergeCells']);
+        }
+        return [$nextCellRowIndex,$nexCellColumnIndex];
+    }
+
+    /**
+     * [Description for setSheetSpans]
+     *
+     * @param mixed $sheet
+     * @param mixed $fromCellRowIndex 1+
+     * @param mixed $fromCellColumnIndex 1+
+     * @param mixed $mergeCells [[cellRowIndex(1+),cellColumnIndex(1+),rowspan(0+),colspan(0+)]]
+     * 
+     * @return [type]
+     * 
+     */
+    public function setSheetMergeCells($sheet,$fromCellRowIndex,$fromCellColumnIndex,$mergeCells){
+        foreach($mergeCells as $mergeCell){
+            if($mergeCell[2] > 1 || $mergeCell[3]>1 ){
+                $coord1 = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($fromCellColumnIndex+$mergeCell[1]-1).($fromCellRowIndex+$mergeCell[0]-1);
+                $coord2 = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($fromCellColumnIndex+$mergeCell[1]+$mergeCell[3]-2).($fromCellRowIndex+$mergeCell[0]+$mergeCell[2]-2);
+                $coords = $coord1.':'.$coord2;
+                // print_r($coords);
+                $sheet->mergeCells($coords);
+                
+            }
+        }
     }
     
 }

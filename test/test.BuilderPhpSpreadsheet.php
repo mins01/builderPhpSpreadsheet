@@ -12,7 +12,17 @@ $bps = new BuilderPhpSpreadsheet();
 $conf = [
     'sheet'=>[
         'title'=>"기본설정",
+        'mergeCells'=>[
+            // [cellRowIndex(1+),cellColumnIndex(1+),rowspan(0+),colspan(0+)]
+            [1,1,1,2],
+        ]
     ],
+    'body'=>[
+        'mergeCells'=>[
+            // [cellRowIndex(1+),cellColumnIndex(1+),rowspan(0+),colspan(0+)]
+            [1,3,1,2],
+        ]
+    ]
 ];
 $header = [
     ['해더1-'.time(),'해더2','해더3','해더4','해더5','해더6','해더7','해더8','해더9','해더10','해더11','해더12','해더13',],
