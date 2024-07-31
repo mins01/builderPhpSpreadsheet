@@ -4,6 +4,7 @@ namespace mins01\BuilderPhpSpreadsheet;
 
 /**
  * 2024-07-30: 자동링크 처리.
+ * 2024-07-31: conf mergeCells 처리 추가.
  */
 class BuilderPhpSpreadsheet{
     public $spreadsheet = null;
